@@ -20,7 +20,8 @@
  * - Navigation is the innermost wrapper around screens
  */
 
-import React, { useEffect } from 'react';
+import { NavigationContainerRef } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as ReduxProvider } from 'react-redux';
 
@@ -29,15 +30,26 @@ import { ErrorBoundary } from '@app/components/ErrorBoundary';
 import { config } from '@app/config';
 import { logger } from '@app/logging';
 import { AppNavigationContainer, RootNavigator } from '@app/navigation';
+import { RootTabParamList, Routes } from '@app/navigation/types';
 import { QueryProvider } from '@app/query';
 import { store } from '@app/store';
 import { ThemeProvider } from '@app/theme';
 
 /**
+ * Navigation ref for programmatic navigation from outside components.
+ * Used by error boundary to reset navigation to home on recovery.
+ */
+type NavigationRef = NavigationContainerRef<RootTabParamList>;
+
+/**
  * Inner app component that handles initialization side effects.
  * Separated from the main App to ensure providers are available.
  */
-const AppContent: React.FC = () => {
+interface AppContentProps {
+  navigationRef: React.RefObject<NavigationRef>;
+}
+
+const AppContent: React.FC<AppContentProps> = ({ navigationRef }) => {
   useEffect(() => {
     // Log app initialization
     logger.info('Foodie app starting', {
@@ -52,17 +64,10 @@ const AppContent: React.FC = () => {
   }, []);
 
   return (
-    <AppNavigationContainer>
+    <AppNavigationContainer ref={navigationRef}>
       <RootNavigator />
     </AppNavigationContainer>
   );
-};
-
-/**
- * Handle error boundary reset by logging the recovery attempt.
- */
-const handleErrorReset = (): void => {
-  logger.info('User initiated error recovery');
 };
 
 /**
@@ -72,13 +77,48 @@ const handleErrorReset = (): void => {
  * ReduxProvider → QueryProvider → SafeAreaProvider → ThemeProvider → ErrorBoundary → NavigationContainer
  */
 const App: React.FC = () => {
+  // Navigation ref for programmatic navigation from error recovery
+  const navigationRef = useRef<NavigationRef>(null);
+
+  /**
+   * Handle error boundary reset by logging the recovery attempt.
+   */
+  const handleErrorReset = useCallback((): void => {
+    logger.info('Error boundary reset completed');
+  }, []);
+
+  /**
+   * Handle navigation to home screen after an error.
+   * Resets the navigation state to the Restaurant List screen.
+   */
+  const handleNavigateHome = useCallback((): void => {
+    if (navigationRef.current?.isReady()) {
+      logger.info('Navigating to home screen after error recovery');
+
+      // Reset navigation to the home tab with restaurant list
+      navigationRef.current.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.HOME_TAB,
+            state: {
+              routes: [{ name: Routes.RESTAURANT_LIST }],
+            },
+          },
+        ],
+      });
+    } else {
+      logger.warn('Navigation not ready for home navigation after error');
+    }
+  }, []);
+
   return (
     <ReduxProvider store={store}>
       <QueryProvider>
         <SafeAreaProvider>
           <ThemeProvider>
-            <ErrorBoundary onReset={handleErrorReset}>
-              <AppContent />
+            <ErrorBoundary onReset={handleErrorReset} onNavigateHome={handleNavigateHome}>
+              <AppContent navigationRef={navigationRef} />
             </ErrorBoundary>
           </ThemeProvider>
         </SafeAreaProvider>

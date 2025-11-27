@@ -3,19 +3,23 @@
  *
  * Wraps the entire navigation tree with React Navigation's NavigationContainer.
  * Handles navigation state changes for analytics tracking and theme integration.
+ * Supports ref forwarding for programmatic navigation from error recovery.
  */
 
 import {
   DefaultTheme,
   NavigationContainer as RNNavigationContainer,
+  NavigationContainerRef,
   NavigationState,
   Theme as NavigationTheme,
 } from '@react-navigation/native';
-import React, { ReactNode, useCallback, useRef } from 'react';
+import React, { forwardRef, ReactNode, useCallback, useRef } from 'react';
 
 import { analytics } from '@app/analytics';
 import { logger } from '@app/logging';
 import { colors } from '@app/theme';
+
+import { RootTabParamList } from './types';
 
 /**
  * Props for the AppNavigationContainer component.
@@ -69,8 +73,21 @@ const getActiveRouteName = (state: NavigationState | undefined): string | undefi
  * - Applies navigation theme from design system
  * - Tracks screen views for analytics
  * - Logs navigation state changes in development
+ * - Supports ref forwarding for programmatic navigation
+ *
+ * @example
+ * ```tsx
+ * const navigationRef = useRef<NavigationContainerRef<RootTabParamList>>(null);
+ *
+ * <AppNavigationContainer ref={navigationRef}>
+ *   <RootNavigator />
+ * </AppNavigationContainer>
+ * ```
  */
-export const AppNavigationContainer: React.FC<AppNavigationContainerProps> = ({ children }) => {
+export const AppNavigationContainer = forwardRef<
+  NavigationContainerRef<RootTabParamList>,
+  AppNavigationContainerProps
+>(({ children }, ref) => {
   // Track the current route for comparison
   const routeNameRef = useRef<string | undefined>(undefined);
 
@@ -110,6 +127,7 @@ export const AppNavigationContainer: React.FC<AppNavigationContainerProps> = ({ 
 
   return (
     <RNNavigationContainer
+      ref={ref}
       theme={navigationTheme}
       onStateChange={handleStateChange}
       onReady={handleReady}
@@ -117,4 +135,7 @@ export const AppNavigationContainer: React.FC<AppNavigationContainerProps> = ({ 
       {children}
     </RNNavigationContainer>
   );
-};
+});
+
+// Display name for debugging
+AppNavigationContainer.displayName = 'AppNavigationContainer';

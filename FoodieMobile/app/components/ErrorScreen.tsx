@@ -2,14 +2,17 @@
  * Generic Error Screen Component
  *
  * Displays a user-friendly error message when an unhandled error occurs.
- * Uses the design system tokens for consistent styling.
+ * Uses shared components from the design system for consistent styling.
  */
 
 import React from 'react';
-import { AccessibilityRole, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
-import { colors, radii, spacing, typography } from '@app/theme';
+import { colors, radii, spacing } from '@app/theme';
+
+import { Button } from './Button';
+import { ScreenContainer } from './ScreenContainer';
+import { Text } from './Text';
 
 /**
  * Props for the ErrorScreen component.
@@ -19,10 +22,14 @@ export interface ErrorScreenProps {
   error?: Error | null;
   /** Callback when the user taps the retry button */
   onRetry?: () => void;
+  /** Callback when the user taps the go home button */
+  onGoHome?: () => void;
   /** Optional custom title */
   title?: string;
   /** Optional custom message */
   message?: string;
+  /** Whether to show the Go Home button */
+  showHomeButton?: boolean;
 }
 
 /**
@@ -32,60 +39,95 @@ export interface ErrorScreenProps {
  * - User-friendly (no technical jargon)
  * - Accessible (proper labels and roles)
  * - Consistent with the app's design system
- * - Recoverable (provides a retry action)
+ * - Recoverable (provides retry and navigation actions)
+ *
+ * @example
+ * ```tsx
+ * <ErrorScreen
+ *   onRetry={() => resetErrorBoundary()}
+ *   onGoHome={() => navigation.reset({ routes: [{ name: 'Home' }] })}
+ *   showHomeButton
+ * />
+ * ```
  */
 export const ErrorScreen: React.FC<ErrorScreenProps> = ({
   error: _error,
   onRetry,
+  onGoHome,
   title = 'Oops! Something went wrong',
   message = "We're sorry, but something unexpected happened. Please try again.",
+  showHomeButton = true,
 }) => {
-  const retryButtonRole: AccessibilityRole = 'button';
-
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenContainer>
       <View style={styles.content}>
-        {/* Error Icon Placeholder */}
+        {/* Error Icon */}
         <View style={styles.iconContainer}>
-          <Text style={styles.iconText}>!</Text>
+          <Text variant="heading" style={styles.iconText}>
+            !
+          </Text>
         </View>
 
         {/* Error Title */}
-        <Text style={styles.title} accessibilityRole="header" accessibilityLabel={title}>
+        <Text variant="heading" align="center" style={styles.title} accessibilityRole="header">
           {title}
         </Text>
 
         {/* Error Message */}
-        <Text style={styles.message} accessibilityLabel={message}>
+        <Text
+          variant="body"
+          color={colors.neutral.text.secondary}
+          align="center"
+          style={styles.message}
+        >
           {message}
         </Text>
 
-        {/* Retry Button */}
-        {onRetry && (
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={onRetry}
-            accessibilityRole={retryButtonRole}
-            accessibilityLabel="Try again"
-            accessibilityHint="Attempts to recover from the error"
-            activeOpacity={0.8}
-          >
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-        )}
+        {/* Action Buttons */}
+        <View style={styles.actions}>
+          {/* Retry Button */}
+          {onRetry && (
+            <Button
+              fullWidth
+              onPress={onRetry}
+              style={styles.retryButton}
+              accessibilityLabel="Try again"
+              accessibilityHint="Attempts to recover from the error"
+            >
+              Try Again
+            </Button>
+          )}
 
-        {/* Secondary action hint */}
-        <Text style={styles.hint}>If the problem persists, please restart the app.</Text>
+          {/* Go Home Button */}
+          {showHomeButton && onGoHome && (
+            <Button
+              variant="outline"
+              fullWidth
+              onPress={onGoHome}
+              style={styles.homeButton}
+              accessibilityLabel="Go to home screen"
+              accessibilityHint="Returns to the restaurant list"
+            >
+              Go to Home
+            </Button>
+          )}
+        </View>
+
+        {/* Secondary hint */}
+        <Text
+          variant="caption"
+          color={colors.neutral.text.disabled}
+          align="center"
+          style={styles.hint}
+        >
+          If the problem persists, please restart the app.
+        </Text>
       </View>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -103,40 +145,25 @@ const styles = StyleSheet.create({
   },
   iconText: {
     fontSize: 48,
-    fontWeight: typography.fontWeight.bold,
     color: colors.neutral.white,
   },
   title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
-    textAlign: 'center',
     marginBottom: spacing.md,
   },
   message: {
-    fontSize: typography.fontSize.base,
-    lineHeight: typography.fontSize.base * typography.lineHeight.normal,
-    color: colors.neutral.text.secondary,
-    textAlign: 'center',
     marginBottom: spacing.xl,
   },
-  retryButton: {
-    backgroundColor: colors.primary.main,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radii.md,
+  actions: {
+    width: '100%',
     marginBottom: spacing.lg,
-    minWidth: 200,
-    alignItems: 'center',
   },
-  retryButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.contrast,
+  retryButton: {
+    marginBottom: spacing.md,
+  },
+  homeButton: {
+    marginBottom: spacing.sm,
   },
   hint: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.disabled,
-    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
   },
 });
