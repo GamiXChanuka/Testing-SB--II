@@ -5,11 +5,11 @@
  */
 
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, StyleSheet, View } from 'react-native';
 
+import { Avatar, Badge, Button, Card, ScreenContainer, ScreenHeader, Text } from '@app/components';
 import { Routes } from '@app/navigation/types';
-import { colors, radii, shadows, spacing, typography } from '@app/theme';
+import { colors, spacing } from '@app/theme';
 
 import type { OrderHistoryScreenProps } from '@app/navigation/types';
 
@@ -71,57 +71,61 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({ navigati
   };
 
   const renderOrderItem = ({ item }: { item: Order }) => (
-    <TouchableOpacity
+    <Card
       style={styles.orderCard}
       onPress={() => handleViewOrder(item)}
-      accessibilityRole="button"
       accessibilityLabel={`Order from ${item.restaurant} on ${formatDate(item.date)}, ${item.items} items, total $${item.total.toFixed(2)}`}
     >
       <View style={styles.orderHeader}>
-        <View style={styles.restaurantIcon}>
-          <Text style={styles.restaurantIconText}>{item.restaurant.charAt(0)}</Text>
-        </View>
+        <Avatar name={item.restaurant} />
         <View style={styles.orderInfo}>
-          <Text style={styles.restaurantName}>{item.restaurant}</Text>
-          <Text style={styles.orderDate}>{formatDate(item.date)}</Text>
+          <Text variant="body" weight="semibold">
+            {item.restaurant}
+          </Text>
+          <Text variant="bodySmall" color={colors.neutral.text.secondary}>
+            {formatDate(item.date)}
+          </Text>
         </View>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{item.status}</Text>
-        </View>
+        <Badge variant="success">{item.status}</Badge>
       </View>
 
       <View style={styles.orderDetails}>
-        <Text style={styles.orderItems}>
+        <Text variant="bodySmall" color={colors.neutral.text.secondary}>
           {item.items} item{item.items !== 1 ? 's' : ''}
         </Text>
-        <Text style={styles.orderTotal}>${item.total.toFixed(2)}</Text>
+        <Text variant="body" weight="semibold">
+          ${item.total.toFixed(2)}
+        </Text>
       </View>
 
       <View style={styles.orderActions}>
-        <TouchableOpacity
+        <Button
+          size="small"
           style={styles.reorderButton}
-          accessibilityRole="button"
           accessibilityLabel={`Reorder from ${item.restaurant}`}
         >
-          <Text style={styles.reorderButtonText}>Reorder</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+          Reorder
+        </Button>
+        <Button
+          variant="outline"
+          size="small"
           style={styles.detailsButton}
-          accessibilityRole="button"
           accessibilityLabel="View order details"
         >
-          <Text style={styles.detailsButtonText}>View Details</Text>
-        </TouchableOpacity>
+          View Details
+        </Button>
       </View>
-    </TouchableOpacity>
+    </Card>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Order History</Text>
-        <Text style={styles.headerSubtitle}>Your past orders</Text>
-      </View>
+    <ScreenContainer edges={['top']}>
+      <ScreenHeader>
+        <Text variant="heading">Order History</Text>
+        <Text variant="bodySmall" color={colors.neutral.text.secondary} style={styles.subtitle}>
+          Your past orders
+        </Text>
+      </ScreenHeader>
 
       <FlatList
         data={MOCK_ORDERS}
@@ -131,89 +135,37 @@ export const OrderHistoryScreen: React.FC<OrderHistoryScreenProps> = ({ navigati
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No orders yet</Text>
-            <Text style={styles.emptyText}>Your order history will appear here</Text>
+            <Text variant="subtitle" weight="semibold" style={styles.emptyTitle}>
+              No orders yet
+            </Text>
+            <Text variant="body" color={colors.neutral.text.secondary}>
+              Your order history will appear here
+            </Text>
           </View>
         }
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.neutral.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.border,
-  },
-  headerTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
-  },
-  headerSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+  subtitle: {
     marginTop: spacing.xs,
   },
   listContent: {
     padding: spacing.md,
   },
   orderCard: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.lg,
-    padding: spacing.md,
     marginBottom: spacing.md,
-    ...shadows.sm,
   },
   orderHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  restaurantIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.md,
-    backgroundColor: colors.primary.light,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  restaurantIconText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.contrast,
-  },
   orderInfo: {
     flex: 1,
     marginLeft: spacing.md,
-  },
-  restaurantName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
-  },
-  orderDate: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
-    marginTop: spacing.xs,
-  },
-  statusBadge: {
-    backgroundColor: colors.semantic.success,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.sm,
-  },
-  statusText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral.white,
   },
   orderDetails: {
     flexDirection: 'row',
@@ -224,58 +176,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral.border,
   },
-  orderItems: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
-  },
-  orderTotal: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
-  },
   orderActions: {
     flexDirection: 'row',
     marginTop: spacing.md,
   },
   reorderButton: {
     flex: 1,
-    backgroundColor: colors.primary.main,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.md,
-    alignItems: 'center',
     marginRight: spacing.sm,
-  },
-  reorderButtonText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.contrast,
   },
   detailsButton: {
     flex: 1,
-    backgroundColor: colors.neutral.background,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.neutral.border,
-  },
-  detailsButtonText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
   },
   emptyContainer: {
     padding: spacing.xl,
     alignItems: 'center',
   },
   emptyTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
     marginBottom: spacing.sm,
-  },
-  emptyText: {
-    fontSize: typography.fontSize.base,
-    color: colors.neutral.text.secondary,
   },
 });

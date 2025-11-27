@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
+import { Button, Card, ScreenContainer, ScreenFooter, ScreenHeader, Text } from '@app/components';
 import { Routes } from '@app/navigation/types';
-import { colors, radii, shadows, spacing, typography } from '@app/theme';
+import { colors, radii, spacing } from '@app/theme';
 
 import type { RestaurantDetailsScreenProps } from '@app/navigation/types';
 
@@ -47,31 +47,45 @@ export const RestaurantDetailsScreen: React.FC<RestaurantDetailsScreenProps> = (
   };
 
   const renderMenuItem = ({ item }: { item: MenuItem }) => (
-    <View style={styles.menuItem}>
-      <View style={styles.menuItemInfo}>
-        <Text style={styles.menuItemName}>{item.name}</Text>
-        <Text style={styles.menuItemDescription}>{item.description}</Text>
-        <Text style={styles.menuItemPrice}>${item.price.toFixed(2)}</Text>
+    <Card style={styles.menuItem}>
+      <View style={styles.menuItemContent}>
+        <View style={styles.menuItemInfo}>
+          <Text variant="body" weight="semibold">
+            {item.name}
+          </Text>
+          <Text variant="bodySmall" style={styles.description}>
+            {item.description}
+          </Text>
+          <Text variant="body" weight="medium" color={colors.primary.main}>
+            ${item.price.toFixed(2)}
+          </Text>
+        </View>
+        <Pressable
+          style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
+          onPress={() => handleAddToCart(item)}
+          accessibilityRole="button"
+          accessibilityLabel={`Add ${item.name} to cart, $${item.price.toFixed(2)}`}
+        >
+          <Text variant="title" color={colors.primary.contrast}>
+            +
+          </Text>
+        </Pressable>
       </View>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => handleAddToCart(item)}
-        accessibilityRole="button"
-        accessibilityLabel={`Add ${item.name} to cart, $${item.price.toFixed(2)}`}
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
-    </View>
+    </Card>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.header}>
-        <Text style={styles.restaurantName}>{restaurantName}</Text>
-        <Text style={styles.restaurantMeta}>Italian • $$ • 25-35 min</Text>
-      </View>
+    <ScreenContainer edges={['bottom']}>
+      <ScreenHeader>
+        <Text variant="heading">{restaurantName}</Text>
+        <Text variant="bodySmall" style={styles.meta}>
+          Italian • $$ • 25-35 min
+        </Text>
+      </ScreenHeader>
 
-      <Text style={styles.sectionTitle}>Menu</Text>
+      <Text variant="title" style={styles.sectionTitle}>
+        Menu
+      </Text>
 
       <FlatList
         data={MOCK_MENU_ITEMS}
@@ -81,45 +95,20 @@ export const RestaurantDetailsScreen: React.FC<RestaurantDetailsScreenProps> = (
         showsVerticalScrollIndicator={false}
       />
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.viewCartButton}
-          onPress={handleViewCart}
-          accessibilityRole="button"
-          accessibilityLabel="View cart"
-        >
-          <Text style={styles.viewCartButtonText}>View Cart</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <ScreenFooter>
+        <Button fullWidth onPress={handleViewCart}>
+          View Cart
+        </Button>
+      </ScreenFooter>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
-  header: {
-    padding: spacing.lg,
-    backgroundColor: colors.neutral.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.border,
-  },
-  restaurantName: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
-  },
-  restaurantMeta: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+  meta: {
     marginTop: spacing.xs,
   },
   sectionTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
@@ -129,32 +118,18 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   menuItem: {
-    flexDirection: 'row',
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
+  },
+  menuItemContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    ...shadows.sm,
   },
   menuItemInfo: {
     flex: 1,
   },
-  menuItemName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
-  },
-  menuItemDescription: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+  description: {
     marginTop: spacing.xs,
-  },
-  menuItemPrice: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.primary.main,
-    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
   },
   addButton: {
     width: 40,
@@ -165,26 +140,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: spacing.md,
   },
-  addButtonText: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.contrast,
-  },
-  footer: {
-    padding: spacing.md,
-    backgroundColor: colors.neutral.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral.border,
-  },
-  viewCartButton: {
-    backgroundColor: colors.primary.main,
-    paddingVertical: spacing.md,
-    borderRadius: radii.md,
-    alignItems: 'center',
-  },
-  viewCartButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.contrast,
+  addButtonPressed: {
+    backgroundColor: colors.primary.dark,
   },
 });

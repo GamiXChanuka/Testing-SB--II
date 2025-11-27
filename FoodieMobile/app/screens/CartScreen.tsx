@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
+import { Button, Card, ScreenContainer, ScreenFooter, ScreenHeader, Text } from '@app/components';
 import { Routes } from '@app/navigation/types';
-import { colors, radii, shadows, spacing, typography } from '@app/theme';
+import { colors, radii, spacing } from '@app/theme';
 
 import type { CartScreenProps } from '@app/navigation/types';
 
@@ -38,37 +38,57 @@ export const CartScreen: React.FC<CartScreenProps> = ({ navigation }) => {
   };
 
   const renderCartItem = ({ item }: { item: CartItem }) => (
-    <View style={styles.cartItem}>
-      <View style={styles.cartItemInfo}>
-        <Text style={styles.cartItemName}>{item.name}</Text>
-        <Text style={styles.cartItemPrice}>${item.price.toFixed(2)}</Text>
+    <Card style={styles.cartItem}>
+      <View style={styles.cartItemContent}>
+        <View style={styles.cartItemInfo}>
+          <Text variant="body" weight="semibold">
+            {item.name}
+          </Text>
+          <Text variant="bodySmall" style={styles.price}>
+            ${item.price.toFixed(2)}
+          </Text>
+        </View>
+        <View style={styles.quantityContainer}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.quantityButton,
+              pressed && styles.quantityButtonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Decrease quantity of ${item.name}`}
+          >
+            <Text variant="body" weight="bold">
+              -
+            </Text>
+          </Pressable>
+          <Text variant="body" weight="medium" style={styles.quantityText}>
+            {item.quantity}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.quantityButton,
+              pressed && styles.quantityButtonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Increase quantity of ${item.name}`}
+          >
+            <Text variant="body" weight="bold">
+              +
+            </Text>
+          </Pressable>
+        </View>
       </View>
-      <View style={styles.quantityContainer}>
-        <TouchableOpacity
-          style={styles.quantityButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Decrease quantity of ${item.name}`}
-        >
-          <Text style={styles.quantityButtonText}>-</Text>
-        </TouchableOpacity>
-        <Text style={styles.quantityText}>{item.quantity}</Text>
-        <TouchableOpacity
-          style={styles.quantityButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Increase quantity of ${item.name}`}
-        >
-          <Text style={styles.quantityButtonText}>+</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </Card>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Your Cart</Text>
-        <Text style={styles.headerSubtitle}>{MOCK_CART_ITEMS.length} items</Text>
-      </View>
+    <ScreenContainer edges={['bottom']}>
+      <ScreenHeader>
+        <Text variant="heading">Your Cart</Text>
+        <Text variant="bodySmall" style={styles.subtitle}>
+          {MOCK_CART_ITEMS.length} items
+        </Text>
+      </ScreenHeader>
 
       <FlatList
         data={MOCK_CART_ITEMS}
@@ -78,84 +98,67 @@ export const CartScreen: React.FC<CartScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Your cart is empty</Text>
+            <Text variant="body" color={colors.neutral.text.secondary}>
+              Your cart is empty
+            </Text>
           </View>
         }
       />
 
       <View style={styles.summary}>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Subtotal</Text>
-          <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+          <Text variant="body" color={colors.neutral.text.secondary}>
+            Subtotal
+          </Text>
+          <Text variant="body">${subtotal.toFixed(2)}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Delivery Fee</Text>
-          <Text style={styles.summaryValue}>${deliveryFee.toFixed(2)}</Text>
+          <Text variant="body" color={colors.neutral.text.secondary}>
+            Delivery Fee
+          </Text>
+          <Text variant="body">${deliveryFee.toFixed(2)}</Text>
         </View>
         <View style={[styles.summaryRow, styles.totalRow]}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+          <Text variant="title" weight="bold">
+            Total
+          </Text>
+          <Text variant="title" weight="bold" color={colors.primary.main}>
+            ${total.toFixed(2)}
+          </Text>
         </View>
       </View>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.checkoutButton}
+      <ScreenFooter bordered={false}>
+        <Button
+          fullWidth
           onPress={handleCheckout}
-          accessibilityRole="button"
           accessibilityLabel={`Proceed to checkout, total $${total.toFixed(2)}`}
         >
-          <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          Proceed to Checkout
+        </Button>
+      </ScreenFooter>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
-  header: {
-    padding: spacing.lg,
-    backgroundColor: colors.neutral.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.border,
-  },
-  headerTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
-  },
-  headerSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+  subtitle: {
     marginTop: spacing.xs,
   },
   listContent: {
     padding: spacing.md,
   },
   cartItem: {
-    flexDirection: 'row',
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
+  },
+  cartItemContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    ...shadows.sm,
   },
   cartItemInfo: {
     flex: 1,
   },
-  cartItemName: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
-  },
-  cartItemPrice: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+  price: {
     marginTop: spacing.xs,
   },
   quantityContainer: {
@@ -170,15 +173,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  quantityButtonText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
+  quantityButtonPressed: {
+    backgroundColor: colors.neutral.disabled,
   },
   quantityText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral.text.primary,
     marginHorizontal: spacing.md,
     minWidth: 24,
     textAlign: 'center',
@@ -186,10 +184,6 @@ const styles = StyleSheet.create({
   emptyContainer: {
     padding: spacing.xl,
     alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: typography.fontSize.base,
-    color: colors.neutral.text.secondary,
   },
   summary: {
     padding: spacing.lg,
@@ -202,44 +196,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
-  summaryLabel: {
-    fontSize: typography.fontSize.base,
-    color: colors.neutral.text.secondary,
-  },
-  summaryValue: {
-    fontSize: typography.fontSize.base,
-    color: colors.neutral.text.primary,
-  },
   totalRow: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.neutral.border,
     marginBottom: 0,
-  },
-  totalLabel: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
-  },
-  totalValue: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.main,
-  },
-  footer: {
-    padding: spacing.md,
-    backgroundColor: colors.neutral.surface,
-  },
-  checkoutButton: {
-    backgroundColor: colors.primary.main,
-    paddingVertical: spacing.md,
-    borderRadius: radii.md,
-    alignItems: 'center',
-  },
-  checkoutButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.contrast,
   },
 });

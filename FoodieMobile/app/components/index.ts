@@ -10,8 +10,30 @@ export type { ErrorBoundaryProps } from './ErrorBoundary';
 export { ErrorScreen } from './ErrorScreen';
 export type { ErrorScreenProps } from './ErrorScreen';
 
-// Themed UI components will be added in Step 4:
-// - Text (with variants: heading, subtitle, body, caption)
-// - Button (primary, secondary, outline)
-// - Card
-// - ScreenContainer
+// Typography
+export { Text, Heading, Title, Subtitle, Body, Caption } from './Text';
+export type { TextProps, TextVariant } from './Text';
+
+// Buttons
+export { Button } from './Button';
+export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
+
+// Cards
+export { Card, CardHeader, CardContent, CardFooter } from './Card';
+export type { CardProps, CardPadding } from './Card';
+
+// Screen containers
+export { ScreenContainer, ScreenHeader, ScreenFooter } from './ScreenContainer';
+export type { ScreenContainerProps } from './ScreenContainer';
+
+// List items
+export { ListItem, ListItemSeparator, ListItemGroup } from './ListItem';
+export type { ListItemProps } from './ListItem';
+
+// Icons and avatars
+export { Icon, Avatar } from './Icon';
+export type { IconProps, IconName, AvatarProps } from './Icon';
+
+// Badges
+export { Badge } from './Badge';
+export type { BadgeProps, BadgeVariant } from './Badge';

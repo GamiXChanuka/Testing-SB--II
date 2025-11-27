@@ -6,11 +6,19 @@
  */
 
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
+import {
+  Avatar,
+  Button,
+  Card,
+  ListItem,
+  ScreenContainer,
+  ScreenHeader,
+  Text,
+} from '@app/components';
 import { config } from '@app/config';
-import { colors, radii, shadows, spacing, typography } from '@app/theme';
+import { colors, spacing } from '@app/theme';
 
 import type { SettingsScreenProps } from '@app/navigation/types';
 
@@ -58,30 +66,25 @@ const SETTINGS_SECTIONS = [
  * SettingsScreen provides access to user settings and preferences.
  */
 export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
-  const renderSettingsItem = (item: SettingsItem) => (
-    <TouchableOpacity
+  const renderSettingsItem = (item: SettingsItem, isLast: boolean) => (
+    <ListItem
       key={item.id}
-      style={styles.settingsItem}
-      accessibilityRole="button"
+      title={item.title}
+      subtitle={item.subtitle}
+      leftElement={<Text variant="subtitle">{item.icon}</Text>}
+      showChevron
+      isLast={isLast}
+      onPress={() => {}}
       accessibilityLabel={item.title}
       accessibilityHint={item.subtitle}
-    >
-      <View style={styles.itemIcon}>
-        <Text style={styles.iconText}>{item.icon}</Text>
-      </View>
-      <View style={styles.itemContent}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        {item.subtitle && <Text style={styles.itemSubtitle}>{item.subtitle}</Text>}
-      </View>
-      <Text style={styles.chevron}>›</Text>
-    </TouchableOpacity>
+    />
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-      </View>
+    <ScreenContainer edges={['top']}>
+      <ScreenHeader bordered={false}>
+        <Text variant="heading">Settings</Text>
+      </ScreenHeader>
 
       <ScrollView
         style={styles.scrollView}
@@ -89,67 +92,71 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* User Profile Card */}
-        <TouchableOpacity
-          style={styles.profileCard}
-          accessibilityRole="button"
-          accessibilityLabel="View profile"
-        >
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>JD</Text>
+        <Card style={styles.profileCard} onPress={() => {}} accessibilityLabel="View profile">
+          <View style={styles.profileContent}>
+            <Avatar name="John Doe" size={60} />
+            <View style={styles.profileInfo}>
+              <Text variant="subtitle" weight="semibold">
+                John Doe
+              </Text>
+              <Text variant="bodySmall" color={colors.neutral.text.secondary}>
+                john.doe@example.com
+              </Text>
+            </View>
+            <Text variant="heading" color={colors.neutral.text.disabled}>
+              ›
+            </Text>
           </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text style={styles.profileEmail}>john.doe@example.com</Text>
-          </View>
-          <Text style={styles.chevron}>›</Text>
-        </TouchableOpacity>
+        </Card>
 
         {/* Settings Sections */}
         {SETTINGS_SECTIONS.map(section => (
           <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <View style={styles.sectionContent}>{section.items.map(renderSettingsItem)}</View>
+            <Text
+              variant="caption"
+              weight="medium"
+              color={colors.neutral.text.secondary}
+              style={styles.sectionTitle}
+            >
+              {section.title.toUpperCase()}
+            </Text>
+            <Card padding="none">
+              {section.items.map((item, index) =>
+                renderSettingsItem(item, index === section.items.length - 1)
+              )}
+            </Card>
           </View>
         ))}
 
         {/* Sign Out Button */}
-        <TouchableOpacity
+        <Button
+          variant="ghost"
+          fullWidth
           style={styles.signOutButton}
-          accessibilityRole="button"
           accessibilityLabel="Sign out"
         >
-          <Text style={styles.signOutText}>Sign Out</Text>
-        </TouchableOpacity>
+          <Text variant="body" weight="semibold" color={colors.semantic.error}>
+            Sign Out
+          </Text>
+        </Button>
 
         {/* Environment Info (Development Only) */}
         {config.enableDebugLogging && (
           <View style={styles.debugInfo}>
-            <Text style={styles.debugText}>Environment: {config.environment}</Text>
-            <Text style={styles.debugText}>API: {config.apiBaseUrl}</Text>
+            <Text variant="caption" color={colors.neutral.text.secondary} style={styles.debugText}>
+              Environment: {config.environment}
+            </Text>
+            <Text variant="caption" color={colors.neutral.text.secondary} style={styles.debugText}>
+              API: {config.apiBaseUrl}
+            </Text>
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.neutral.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.border,
-  },
-  headerTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
-  },
   scrollView: {
     flex: 1,
   },
@@ -158,117 +165,35 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   profileCard: {
+    marginBottom: spacing.lg,
+  },
+  profileContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    ...shadows.sm,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: radii.full,
-    backgroundColor: colors.primary.main,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.contrast,
   },
   profileInfo: {
     flex: 1,
     marginLeft: spacing.md,
   },
-  profileName: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
-  },
-  profileEmail: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
-    marginTop: spacing.xs,
-  },
-  chevron: {
-    fontSize: typography.fontSize['2xl'],
-    color: colors.neutral.text.disabled,
-  },
   section: {
     marginBottom: spacing.lg,
   },
   sectionTitle: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral.text.secondary,
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
-  sectionContent: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.lg,
-    overflow: 'hidden',
-    ...shadows.sm,
-  },
-  settingsItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.border,
-  },
-  itemIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.md,
-    backgroundColor: colors.neutral.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconText: {
-    fontSize: typography.fontSize.lg,
-  },
-  itemContent: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  itemTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral.text.primary,
-  },
-  itemSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
-    marginTop: 2,
-  },
   signOutButton: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    alignItems: 'center',
     marginTop: spacing.md,
-    ...shadows.sm,
-  },
-  signOutText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.semantic.error,
+    backgroundColor: colors.neutral.surface,
   },
   debugInfo: {
     marginTop: spacing.lg,
     padding: spacing.md,
     backgroundColor: colors.neutral.border,
-    borderRadius: radii.md,
+    borderRadius: spacing.sm,
   },
   debugText: {
-    fontSize: typography.fontSize.xs,
-    color: colors.neutral.text.secondary,
     fontFamily: 'monospace',
   },
 });

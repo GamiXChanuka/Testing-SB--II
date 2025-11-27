@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 
+import { Button, Card, ScreenContainer, Text } from '@app/components';
 import { Routes } from '@app/navigation/types';
-import { colors, radii, spacing, typography } from '@app/theme';
+import { colors, radii, spacing } from '@app/theme';
 
 import type { OrderConfirmationScreenProps } from '@app/navigation/types';
 
@@ -39,56 +39,73 @@ export const OrderConfirmationScreen: React.FC<OrderConfirmationScreenProps> = (
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScreenContainer>
       <View style={styles.content}>
         {/* Success Icon */}
         <View style={styles.iconContainer}>
-          <Text style={styles.iconText}>✓</Text>
+          <Text variant="heading" style={styles.iconText}>
+            ✓
+          </Text>
         </View>
 
         {/* Success Message */}
-        <Text style={styles.title}>Order Confirmed!</Text>
-        <Text style={styles.message}>
+        <Text variant="heading" align="center" style={styles.title}>
+          Order Confirmed!
+        </Text>
+        <Text
+          variant="body"
+          color={colors.neutral.text.secondary}
+          align="center"
+          style={styles.message}
+        >
           Your order has been placed successfully and is being prepared.
         </Text>
 
         {/* Order Details */}
-        <View style={styles.orderDetails}>
-          <Text style={styles.orderLabel}>Order Number</Text>
-          <Text style={styles.orderId}>{orderId}</Text>
-          <Text style={styles.estimatedTime}>Estimated delivery: 25-35 minutes</Text>
-        </View>
+        <Card style={styles.orderDetails}>
+          <Text variant="bodySmall" color={colors.neutral.text.secondary} align="center">
+            Order Number
+          </Text>
+          <Text
+            variant="title"
+            weight="bold"
+            color={colors.primary.main}
+            align="center"
+            style={styles.orderId}
+          >
+            {orderId}
+          </Text>
+          <Text variant="bodySmall" color={colors.neutral.text.secondary} align="center">
+            Estimated delivery: 25-35 minutes
+          </Text>
+        </Card>
 
         {/* Action Buttons */}
         <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.trackButton}
+          <Button
+            fullWidth
             onPress={handleTrackOrder}
-            accessibilityRole="button"
             accessibilityLabel="Track your order"
+            style={styles.trackButton}
           >
-            <Text style={styles.trackButtonText}>Track Order</Text>
-          </TouchableOpacity>
+            Track Order
+          </Button>
 
-          <TouchableOpacity
-            style={styles.homeButton}
+          <Button
+            variant="outline"
+            fullWidth
             onPress={handleBackToHome}
-            accessibilityRole="button"
             accessibilityLabel="Return to home screen"
           >
-            <Text style={styles.homeButtonText}>Back to Home</Text>
-          </TouchableOpacity>
+            Back to Home
+          </Button>
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -109,68 +126,23 @@ const styles = StyleSheet.create({
     color: colors.neutral.white,
   },
   title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.text.primary,
     marginBottom: spacing.sm,
-    textAlign: 'center',
   },
   message: {
-    fontSize: typography.fontSize.base,
-    color: colors.neutral.text.secondary,
-    textAlign: 'center',
     marginBottom: spacing.xl,
-    lineHeight: typography.fontSize.base * typography.lineHeight.normal,
   },
   orderDetails: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
     width: '100%',
+    alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  orderLabel: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
-    marginBottom: spacing.xs,
-  },
   orderId: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.main,
-    marginBottom: spacing.md,
-  },
-  estimatedTime: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+    marginVertical: spacing.sm,
   },
   actions: {
     width: '100%',
   },
   trackButton: {
-    backgroundColor: colors.primary.main,
-    paddingVertical: spacing.md,
-    borderRadius: radii.md,
-    alignItems: 'center',
     marginBottom: spacing.md,
-  },
-  trackButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.primary.contrast,
-  },
-  homeButton: {
-    backgroundColor: colors.neutral.surface,
-    paddingVertical: spacing.md,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.neutral.border,
-  },
-  homeButtonText: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
   },
 });

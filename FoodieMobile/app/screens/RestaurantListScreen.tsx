@@ -6,11 +6,11 @@
  */
 
 import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, StyleSheet, View } from 'react-native';
 
+import { Avatar, Card, ScreenContainer, ScreenHeader, Text } from '@app/components';
 import { Routes } from '@app/navigation/types';
-import { colors, radii, shadows, spacing, typography } from '@app/theme';
+import { colors, spacing } from '@app/theme';
 
 import type { RestaurantListScreenProps } from '@app/navigation/types';
 
@@ -39,30 +39,45 @@ export const RestaurantListScreen: React.FC<RestaurantListScreenProps> = ({ navi
   };
 
   const renderRestaurantItem = ({ item }: { item: Restaurant }) => (
-    <TouchableOpacity
-      style={styles.restaurantCard}
+    <Card
       onPress={() => handleRestaurantPress(item)}
-      accessibilityRole="button"
+      padding="none"
+      style={styles.restaurantCard}
       accessibilityLabel={`${item.name}, ${item.cuisine} cuisine, rated ${item.rating} stars`}
       accessibilityHint="Double tap to view restaurant menu"
     >
-      <View style={styles.restaurantImagePlaceholder}>
-        <Text style={styles.restaurantImageText}>{item.name.charAt(0)}</Text>
+      <View style={styles.cardContent}>
+        <Avatar
+          name={item.name}
+          size={80}
+          backgroundColor={colors.primary.light}
+          style={styles.avatar}
+        />
+        <View style={styles.restaurantInfo}>
+          <Text variant="title" numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text variant="bodySmall" style={styles.cuisine}>
+            {item.cuisine}
+          </Text>
+          <Text variant="bodySmall" color={colors.secondary.main} weight="medium">
+            ★ {item.rating}
+          </Text>
+        </View>
       </View>
-      <View style={styles.restaurantInfo}>
-        <Text style={styles.restaurantName}>{item.name}</Text>
-        <Text style={styles.restaurantCuisine}>{item.cuisine}</Text>
-        <Text style={styles.restaurantRating}>★ {item.rating}</Text>
-      </View>
-    </TouchableOpacity>
+    </Card>
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Foodie</Text>
-        <Text style={styles.headerSubtitle}>What would you like to eat?</Text>
-      </View>
+    <ScreenContainer edges={['top']}>
+      <ScreenHeader>
+        <Text variant="heading" color={colors.primary.main}>
+          Foodie
+        </Text>
+        <Text variant="body" color={colors.neutral.text.secondary} style={styles.subtitle}>
+          What would you like to eat?
+        </Text>
+      </ScreenHeader>
 
       <FlatList
         data={MOCK_RESTAURANTS}
@@ -71,74 +86,33 @@ export const RestaurantListScreen: React.FC<RestaurantListScreenProps> = ({ navi
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.neutral.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.border,
-  },
-  headerTitle: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.main,
-  },
-  headerSubtitle: {
-    fontSize: typography.fontSize.base,
-    color: colors.neutral.text.secondary,
+  subtitle: {
     marginTop: spacing.xs,
   },
   listContent: {
     padding: spacing.md,
   },
   restaurantCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.neutral.surface,
-    borderRadius: radii.lg,
     marginBottom: spacing.md,
-    overflow: 'hidden',
-    ...shadows.sm,
   },
-  restaurantImagePlaceholder: {
-    width: 100,
-    height: 100,
-    backgroundColor: colors.primary.light,
-    justifyContent: 'center',
+  cardContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  restaurantImageText: {
-    fontSize: typography.fontSize['3xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.contrast,
+  avatar: {
+    borderRadius: 0,
   },
   restaurantInfo: {
     flex: 1,
     padding: spacing.md,
-    justifyContent: 'center',
   },
-  restaurantName: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.neutral.text.primary,
-  },
-  restaurantCuisine: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
+  cuisine: {
     marginTop: spacing.xs,
-  },
-  restaurantRating: {
-    fontSize: typography.fontSize.sm,
-    color: colors.secondary.main,
-    marginTop: spacing.xs,
-    fontWeight: typography.fontWeight.medium,
+    marginBottom: spacing.xs,
   },
 });
