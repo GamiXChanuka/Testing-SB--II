@@ -3,27 +3,40 @@
  *
  * This component serves as the entry point for the Foodie mobile app.
  * It composes all global providers in the correct order:
- * 1. Redux Provider (for local/app state)
- * 2. QueryProvider (for server state via React Query)
- * 3. ThemeProvider (for design system tokens)
- * 4. ErrorBoundary (for catching unhandled errors) - to be added in Step 7
- * 5. NavigationContainer (for routing) - to be added in Step 3
+ *
+ * 1. Redux Provider - Makes store available throughout app
+ * 2. QueryProvider - Server state management via React Query
+ * 3. SafeAreaProvider - Safe area context for proper insets
+ * 4. ThemeProvider - Design system tokens
+ * 5. ErrorBoundary - Catches unhandled rendering errors
+ * 6. NavigationContainer - Root navigation context
+ *
+ * This order ensures that:
+ * - Redux is available to all components including error handling
+ * - React Query is available for data fetching anywhere
+ * - Safe areas are calculated before navigation renders
+ * - Theme is available to error boundary and navigation
+ * - Error boundary catches navigation/screen errors
+ * - Navigation is the innermost wrapper around screens
  */
 
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as ReduxProvider } from 'react-redux';
 
 import { analytics, AnalyticsEvents } from '@app/analytics';
+import { ErrorBoundary } from '@app/components/ErrorBoundary';
 import { config } from '@app/config';
 import { logger } from '@app/logging';
+import { AppNavigationContainer } from '@app/navigation';
 import { QueryProvider } from '@app/query';
 import { store } from '@app/store';
-import { ThemeProvider, colors, spacing, typography } from '@app/theme';
+import { colors, radii, spacing, ThemeProvider, typography } from '@app/theme';
 
 /**
- * Placeholder screen component to display while navigation is being set up.
- * This will be replaced with the actual navigation container in Step 3.
+ * Placeholder screen component displayed while full navigation is being set up.
+ * This will be replaced with the actual navigation stack in Step 3.
  */
 const PlaceholderScreen: React.FC = () => {
   return (
@@ -33,15 +46,17 @@ const PlaceholderScreen: React.FC = () => {
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>App shell initialized successfully</Text>
         <Text style={styles.envText}>Environment: {config.environment}</Text>
+        <Text style={styles.versionText}>Version: {config.appVersion}</Text>
       </View>
     </View>
   );
 };
 
 /**
- * Main App component that composes all providers.
+ * Inner app component that handles initialization side effects.
+ * Separated from the main App to ensure providers are available.
  */
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   useEffect(() => {
     // Log app initialization
     logger.info('Foodie app starting', {
@@ -56,13 +71,37 @@ const App: React.FC = () => {
   }, []);
 
   return (
+    <AppNavigationContainer>
+      {/* Navigation stack will be added in Step 3 */}
+      <PlaceholderScreen />
+    </AppNavigationContainer>
+  );
+};
+
+/**
+ * Handle error boundary reset by logging the recovery attempt.
+ */
+const handleErrorReset = (): void => {
+  logger.info('User initiated error recovery');
+};
+
+/**
+ * Main App component that composes all global providers.
+ *
+ * Provider composition order (outermost to innermost):
+ * ReduxProvider → QueryProvider → SafeAreaProvider → ThemeProvider → ErrorBoundary → NavigationContainer
+ */
+const App: React.FC = () => {
+  return (
     <ReduxProvider store={store}>
       <QueryProvider>
-        <ThemeProvider>
-          {/* ErrorBoundary will wrap this in Step 7 */}
-          {/* NavigationContainer will be added in Step 3 */}
-          <PlaceholderScreen />
-        </ThemeProvider>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <ErrorBoundary onReset={handleErrorReset}>
+              <AppContent />
+            </ErrorBoundary>
+          </ThemeProvider>
+        </SafeAreaProvider>
       </QueryProvider>
     </ReduxProvider>
   );
@@ -70,7 +109,7 @@ const App: React.FC = () => {
 
 /**
  * Styles for the placeholder screen.
- * These will be replaced with proper themed components in later steps.
+ * These use theme tokens directly for consistency.
  */
 const styles = StyleSheet.create({
   container: {
@@ -94,7 +133,7 @@ const styles = StyleSheet.create({
   infoContainer: {
     backgroundColor: colors.neutral.surface,
     padding: spacing.md,
-    borderRadius: 8,
+    borderRadius: radii.md,
     alignItems: 'center',
   },
   infoText: {
@@ -105,6 +144,11 @@ const styles = StyleSheet.create({
   envText: {
     fontSize: typography.fontSize.sm,
     color: colors.neutral.text.secondary,
+    marginBottom: spacing.xs,
+  },
+  versionText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.neutral.text.disabled,
   },
 });
 

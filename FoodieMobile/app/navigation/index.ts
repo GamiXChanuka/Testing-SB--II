@@ -54,5 +54,5 @@ export type RootStackParamList = {
   [Routes.SETTINGS]: undefined;
 };
 
-// Navigation components will be added in Step 3
-export {};
+// Navigation container
+export { AppNavigationContainer } from './NavigationContainer';
