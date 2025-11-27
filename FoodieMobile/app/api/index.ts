@@ -207,3 +207,13 @@ export const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<
 export const isApiClientError = (error: unknown): error is ApiClientError => {
   return error instanceof ApiClientError;
 };
+
+/**
+ * Re-export health check services.
+ */
+export { checkHealth, fetchHealthCheck, healthQueryFn } from './health';
+
+/**
+ * Re-export React Query hooks for API integration.
+ */
+export { useHealthCheck, useConnectivityCheck, useHealthMonitor } from './hooks';

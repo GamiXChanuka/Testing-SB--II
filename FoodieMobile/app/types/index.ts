@@ -35,3 +35,29 @@ export interface BaseEntity {
   createdAt: string;
   updatedAt: string;
 }
+
+/**
+ * Health check response from the API.
+ * Contains service status information.
+ */
+export interface HealthCheckResponse {
+  /** Service status indicator */
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  /** Timestamp of the health check */
+  timestamp: string;
+  /** Optional version information */
+  version?: string;
+}
+
+/**
+ * Sanitized health status for UI consumption.
+ * Does not expose internal environment details.
+ */
+export interface HealthStatus {
+  /** Whether the service is available */
+  isAvailable: boolean;
+  /** Human-readable status message for users */
+  message: string;
+  /** When the check was performed */
+  checkedAt: Date;
+}
