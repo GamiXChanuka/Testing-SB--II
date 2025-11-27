@@ -21,7 +21,6 @@
  */
 
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as ReduxProvider } from 'react-redux';
 
@@ -29,28 +28,10 @@ import { analytics, AnalyticsEvents } from '@app/analytics';
 import { ErrorBoundary } from '@app/components/ErrorBoundary';
 import { config } from '@app/config';
 import { logger } from '@app/logging';
-import { AppNavigationContainer } from '@app/navigation';
+import { AppNavigationContainer, RootNavigator } from '@app/navigation';
 import { QueryProvider } from '@app/query';
 import { store } from '@app/store';
-import { colors, radii, spacing, ThemeProvider, typography } from '@app/theme';
-
-/**
- * Placeholder screen component displayed while full navigation is being set up.
- * This will be replaced with the actual navigation stack in Step 3.
- */
-const PlaceholderScreen: React.FC = () => {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Foodie</Text>
-      <Text style={styles.subtitle}>Your food, delivered.</Text>
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>App shell initialized successfully</Text>
-        <Text style={styles.envText}>Environment: {config.environment}</Text>
-        <Text style={styles.versionText}>Version: {config.appVersion}</Text>
-      </View>
-    </View>
-  );
-};
+import { ThemeProvider } from '@app/theme';
 
 /**
  * Inner app component that handles initialization side effects.
@@ -72,8 +53,7 @@ const AppContent: React.FC = () => {
 
   return (
     <AppNavigationContainer>
-      {/* Navigation stack will be added in Step 3 */}
-      <PlaceholderScreen />
+      <RootNavigator />
     </AppNavigationContainer>
   );
 };
@@ -106,50 +86,5 @@ const App: React.FC = () => {
     </ReduxProvider>
   );
 };
-
-/**
- * Styles for the placeholder screen.
- * These use theme tokens directly for consistency.
- */
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.neutral.background,
-    padding: spacing.lg,
-  },
-  title: {
-    fontSize: typography.fontSize['4xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.primary.main,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.lg,
-    color: colors.neutral.text.secondary,
-    marginBottom: spacing.xl,
-  },
-  infoContainer: {
-    backgroundColor: colors.neutral.surface,
-    padding: spacing.md,
-    borderRadius: radii.md,
-    alignItems: 'center',
-  },
-  infoText: {
-    fontSize: typography.fontSize.base,
-    color: colors.semantic.success,
-    marginBottom: spacing.xs,
-  },
-  envText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.secondary,
-    marginBottom: spacing.xs,
-  },
-  versionText: {
-    fontSize: typography.fontSize.sm,
-    color: colors.neutral.text.disabled,
-  },
-});
 
 export default App;
