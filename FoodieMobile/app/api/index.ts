@@ -11,10 +11,23 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
+import { analytics, AnalyticsEvents } from '@app/analytics';
 import { config } from '@app/config';
 import { logger } from '@app/logging';
 
 import type { ApiError, ApiResponse } from '@app/types';
+
+/**
+ * Symbol for storing request start time on the config object.
+ */
+const REQUEST_START_TIME = Symbol('requestStartTime');
+
+/**
+ * Extended config type with request timing.
+ */
+interface TimedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  [REQUEST_START_TIME]?: number;
+}
 
 /**
  * Custom error class for API errors with structured information.
@@ -68,11 +81,15 @@ const mapAxiosError = (error: AxiosError): ApiError => {
 };
 
 /**
- * Request interceptor for adding common headers and logging.
+ * Request interceptor for adding common headers, logging, and timing.
  */
 const requestInterceptor = (
   requestConfig: InternalAxiosRequestConfig
 ): InternalAxiosRequestConfig => {
+  // Store request start time for duration calculation
+  const timedConfig = requestConfig as TimedAxiosRequestConfig;
+  timedConfig[REQUEST_START_TIME] = Date.now();
+
   logger.debug('API Request', {
     method: requestConfig.method?.toUpperCase(),
     url: requestConfig.url,
@@ -83,27 +100,62 @@ const requestInterceptor = (
 };
 
 /**
- * Response interceptor for logging successful responses.
+ * Calculate request duration from config start time.
+ */
+const getRequestDuration = (config: AxiosRequestConfig): number | undefined => {
+  const timedConfig = config as TimedAxiosRequestConfig;
+  const startTime = timedConfig[REQUEST_START_TIME];
+  if (startTime) {
+    return Date.now() - startTime;
+  }
+  return undefined;
+};
+
+/**
+ * Response interceptor for logging successful responses with timing.
  */
 const responseInterceptor = (response: AxiosResponse): AxiosResponse => {
+  const durationMs = getRequestDuration(response.config);
+
   logger.debug('API Response', {
     status: response.status,
     url: response.config.url,
+    durationMs,
   });
+
+  // Log slow requests as warnings
+  if (durationMs && durationMs > 3000) {
+    logger.warn('Slow API request detected', {
+      url: response.config.url,
+      durationMs,
+    });
+  }
 
   return response;
 };
 
 /**
- * Error interceptor for logging and transforming errors.
+ * Error interceptor for logging, analytics, and transforming errors.
  */
 const errorInterceptor = (error: AxiosError): Promise<never> => {
   const apiError = mapAxiosError(error);
+  const durationMs = error.config ? getRequestDuration(error.config) : undefined;
 
+  // Log the error with structured context
   logger.error('API Error', error, {
     code: apiError.code,
     status: apiError.status,
     url: error.config?.url,
+    method: error.config?.method?.toUpperCase(),
+    durationMs,
+  });
+
+  // Track error in analytics (without sensitive details)
+  analytics.trackEvent(AnalyticsEvents.API_ERROR, {
+    errorCode: apiError.code,
+    statusCode: apiError.status,
+    // Only include path, not query params which might contain sensitive data
+    endpoint: error.config?.url?.split('?')[0],
   });
 
   return Promise.reject(new ApiClientError(apiError));

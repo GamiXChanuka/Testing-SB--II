@@ -181,3 +181,108 @@ export const AnalyticsScreens = {
   SETTINGS: 'Settings',
   ERROR: 'Error',
 } as const;
+
+/**
+ * Captured analytics event for test assertions.
+ */
+export interface CapturedEvent {
+  type: 'event' | 'screen_view' | 'identify' | 'reset';
+  name?: string;
+  properties?: AnalyticsEventProperties;
+  userId?: string;
+  traits?: AnalyticsEventProperties;
+  timestamp: string;
+}
+
+/**
+ * Test analytics interface with additional methods for assertions.
+ */
+export interface TestAnalytics extends Analytics {
+  /** Get all captured events */
+  getEvents: () => CapturedEvent[];
+  /** Get events filtered by type */
+  getEventsByType: (type: CapturedEvent['type']) => CapturedEvent[];
+  /** Get events filtered by name */
+  getEventsByName: (name: string) => CapturedEvent[];
+  /** Clear all captured events */
+  clear: () => void;
+  /** Check if any event matches a name */
+  hasEventWithName: (name: string) => boolean;
+  /** Get screen views only */
+  getScreenViews: () => CapturedEvent[];
+}
+
+/**
+ * Create a test analytics instance that captures events for assertions.
+ * Useful for unit tests to verify analytics tracking behavior.
+ *
+ * @returns TestAnalytics instance with captured events
+ *
+ * @example
+ * ```typescript
+ * const testAnalytics = createTestAnalytics();
+ * // ... run code that tracks events ...
+ * expect(testAnalytics.getScreenViews()).toHaveLength(1);
+ * expect(testAnalytics.hasEventWithName('restaurant_selected')).toBe(true);
+ * ```
+ */
+export const createTestAnalytics = (): TestAnalytics => {
+  const events: CapturedEvent[] = [];
+
+  return {
+    trackEvent: (eventName: string, properties?: AnalyticsEventProperties): void => {
+      events.push({
+        type: 'event',
+        name: eventName,
+        properties,
+        timestamp: new Date().toISOString(),
+      });
+    },
+
+    trackScreenView: (screenName: string, properties?: AnalyticsEventProperties): void => {
+      events.push({
+        type: 'screen_view',
+        name: screenName,
+        properties,
+        timestamp: new Date().toISOString(),
+      });
+    },
+
+    identify: (userId: string, traits?: AnalyticsEventProperties): void => {
+      events.push({
+        type: 'identify',
+        userId,
+        traits,
+        timestamp: new Date().toISOString(),
+      });
+    },
+
+    reset: (): void => {
+      events.push({
+        type: 'reset',
+        timestamp: new Date().toISOString(),
+      });
+    },
+
+    getEvents: (): CapturedEvent[] => [...events],
+
+    getEventsByType: (type: CapturedEvent['type']): CapturedEvent[] =>
+      events.filter(event => event.type === type),
+
+    getEventsByName: (name: string): CapturedEvent[] => events.filter(event => event.name === name),
+
+    clear: (): void => {
+      events.length = 0;
+    },
+
+    hasEventWithName: (name: string): boolean => events.some(event => event.name === name),
+
+    getScreenViews: (): CapturedEvent[] => events.filter(event => event.type === 'screen_view'),
+  };
+};
+
+/**
+ * Re-export the no-op analytics creator for external use.
+ * Useful when consumers need to explicitly disable analytics.
+ */
+export { createNoOpAnalytics };

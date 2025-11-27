@@ -190,3 +190,95 @@ const createLogger = (): Logger => ({
  * Singleton logger instance for use throughout the application.
  */
 export const logger: Logger = createLogger();
+
+/**
+ * Captured log entry for test assertions.
+ */
+export interface CapturedLog extends LogEntry {
+  /** Original error object if one was passed */
+  originalError?: Error | unknown;
+}
+
+/**
+ * Test logger interface with additional methods for assertions.
+ */
+export interface TestLogger extends Logger {
+  /** Get all captured log entries */
+  getLogs: () => CapturedLog[];
+  /** Get logs filtered by level */
+  getLogsByLevel: (level: LogLevel) => CapturedLog[];
+  /** Clear all captured logs */
+  clear: () => void;
+  /** Check if any log contains a specific message */
+  hasLogWithMessage: (message: string) => boolean;
+}
+
+/**
+ * Create a test logger that captures logs for assertions.
+ * Useful for unit tests to verify logging behavior.
+ *
+ * @returns TestLogger instance with captured logs
+ *
+ * @example
+ * ```typescript
+ * const testLogger = createTestLogger();
+ * // ... run code that logs ...
+ * expect(testLogger.getLogsByLevel('error')).toHaveLength(1);
+ * expect(testLogger.hasLogWithMessage('API Error')).toBe(true);
+ * ```
+ */
+export const createTestLogger = (): TestLogger => {
+  const logs: CapturedLog[] = [];
+
+  const captureLog = (
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+    originalError?: Error | unknown
+  ): void => {
+    logs.push({
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      context,
+      originalError,
+    });
+  };
+
+  return {
+    debug: (message: string, context?: LogContext): void => {
+      captureLog('debug', message, context);
+    },
+
+    info: (message: string, context?: LogContext): void => {
+      captureLog('info', message, context);
+    },
+
+    warn: (message: string, context?: LogContext): void => {
+      captureLog('warn', message, context);
+    },
+
+    error: (message: string, error?: Error | unknown, context?: LogContext): void => {
+      let errorContext = context;
+      if (error) {
+        const errorInfo = extractErrorInfo(error);
+        errorContext = {
+          ...context,
+          errorMessage: errorInfo.message,
+        };
+      }
+      captureLog('error', message, errorContext, error);
+    },
+
+    getLogs: (): CapturedLog[] => [...logs],
+
+    getLogsByLevel: (level: LogLevel): CapturedLog[] => logs.filter(log => log.level === level),
+
+    clear: (): void => {
+      logs.length = 0;
+    },
+
+    hasLogWithMessage: (message: string): boolean =>
+      logs.some(log => log.message.includes(message)),
+  };
+};
